@@ -46,6 +46,5 @@ Thumbs.db
 .angular
 
 # Ignore lockfile
-pnpm-lock.yaml
-package-lock.json
+#pnpm-lock.yaml
 

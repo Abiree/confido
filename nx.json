@@ -34,18 +34,9 @@
         "{workspaceRoot}/eslint.config.mjs"
       ]
     },
-    "@nx/jest:jest": {
+    "@nx/vite:test": {
       "cache": true,
-      "inputs": ["default", "^production", "{workspaceRoot}/jest.preset.js"],
-      "options": {
-        "passWithNoTests": true
-      },
-      "configurations": {
-        "ci": {
-          "ci": true,
-          "codeCoverage": true
-        }
-      }
+      "inputs": ["default", "^production"]
     }
   },
   "plugins": [
@@ -70,7 +61,7 @@
       "e2eTestRunner": "cypress",
       "linter": "eslint",
       "style": "scss",
-      "unitTestRunner": "jest"
+      "unitTestRunner": "vitest"
     }
   }
 }

@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { App } from './app';
 import { NxWelcome } from './nx-welcome';
+import { describe, it, expect, beforeEach } from 'vitest';
 
 describe('App', () => {
   beforeEach(async () => {

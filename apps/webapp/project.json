@@ -70,11 +70,16 @@
       "executor": "@nx/eslint:lint"
     },
     "test": {
-      "executor": "@nx/jest:jest",
-      "outputs": ["{workspaceRoot}/coverage/{projectRoot}"],
+      "executor": "@nx/vite:test",
+      "outputs": ["{options.reportsDirectory}"],
       "options": {
-        "jestConfig": "apps/webapp/jest.config.ts",
-        "tsConfig": "apps/webapp/tsconfig.spec.json"
+        "reportsDirectory": "../../coverage/apps/webapp"
+      }
+    },
+    "vitest:ui": {
+      "executor": "nx:run-commands",
+      "options": {
+        "command": "vitest --ui --project apps/webapp"
       }
     },
     "serve-static": {

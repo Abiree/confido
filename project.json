@@ -1,0 +1,14 @@
+{
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          { "command": "nx serve webapp" },
+          { "command": "nx serve api" }
+        ]
+      }
+    }
+  }
+}

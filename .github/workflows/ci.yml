@@ -31,6 +31,9 @@ jobs:
           node-version: 20
           cache: 'pnpm'
 
+      - name: Install pnpm
+        run: npm install -g pnpm
+
       - run: pnpm ci --legacy-peer-deps
       - run: npx cypress install
 

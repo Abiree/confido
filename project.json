@@ -9,6 +9,16 @@
           { "command": "nx serve api" }
         ]
       }
+    },
+    "prettier": {
+      "executor": "nx:run-commands",
+      "options": {
+        "parallel": true,
+        "commands": [
+          { "command": "nx lint webapp" },
+          { "command": "nx lint api" }
+        ]
+      }
     }
   }
 }

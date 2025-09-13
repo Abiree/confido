@@ -2,6 +2,7 @@ plugins {
 	java
 	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
+	id("com.diffplug.spotless") version "6.25.0"
 }
 
 group = "com.confido"
@@ -38,4 +39,17 @@ dependencies {
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+}
+
+spotless {
+    java {
+        // Use Google Java Style
+        googleJavaFormat()
+
+        // 🚀 Automatically remove unused imports
+        removeUnusedImports()
+
+        // Optional: apply custom import ordering
+        importOrder("java", "javax", "org", "com")
+    }
 }

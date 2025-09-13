@@ -67,7 +67,10 @@
       }
     },
     "lint": {
-      "executor": "@nx/eslint:lint"
+      "executor": "@nx/eslint:lint",
+      "options": {
+        "command": "nx run-many -t lint --fix"
+      }
     },
     "test": {
       "executor": "@nx/vite:test",

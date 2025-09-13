@@ -42,6 +42,10 @@ jobs:
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile --strict-peer-dependencies=false
+
+      - name: Run Prettier check
+        run: pnpm nx run prettier
+
       - run: npx cypress install
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud

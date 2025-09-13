@@ -47,4 +47,5 @@ Thumbs.db
 
 # Ignore lockfile
 #pnpm-lock.yaml
-
+package-lock.json
+yarn.lock

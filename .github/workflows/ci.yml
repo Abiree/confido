@@ -41,9 +41,7 @@ jobs:
           cache: 'pnpm'
 
       - name: Install dependencies
-        run: pnpm install
-
-      - run: pnpm install --frozen-lockfile --strict-peer-dependencies=false
+        run: pnpm install --frozen-lockfile --strict-peer-dependencies=false
       - run: npx cypress install
 
       # Prepend any command with "nx-cloud record --" to record its logs to Nx Cloud

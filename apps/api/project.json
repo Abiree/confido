@@ -8,11 +8,13 @@
       "executor": "nx:run-commands",
       "options": {
         "command": "node scripts/run-gradle.js build -x test"
+        "command": "node scripts/run-gradle.js build -x test"
       }
     },
     "serve": {
       "executor": "nx:run-commands",
       "options": {
+        "command": "node scripts/run-gradle.js bootRun"
         "command": "node scripts/run-gradle.js bootRun"
       }
     },

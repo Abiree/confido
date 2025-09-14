@@ -15,6 +15,10 @@ java {
 	}
 }
 
+springBoot {
+    mainClass.set("com.confido.api.ApiApplication")
+}
+
 configurations {
 	compileOnly {
 		extendsFrom(configurations.annotationProcessor.get())

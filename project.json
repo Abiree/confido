@@ -15,9 +15,10 @@
       "options": {
         "parallel": true,
         "commands": [
-          { "command": "nx lint webapp" },
+          { "command": "pnpm nx lint webapp --fix" },
           { "command": "nx lint api" }
         ]
+        
       }
     }
   }

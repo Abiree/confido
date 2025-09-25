@@ -15,6 +15,10 @@ import org.springframework.stereotype.Service;
 import com.confido.api.auth.dao.IProfileRepository;
 import com.confido.api.auth.dao.IUserRepository;
 import com.confido.api.auth.dtos.*;
+import com.confido.api.auth.exceptions.AccountStatusException;
+import com.confido.api.auth.exceptions.ExpiredResetTokenException;
+import com.confido.api.auth.exceptions.ForgotPasswordUserNotFoundException;
+import com.confido.api.auth.exceptions.InvalidResetTokenException;
 import com.confido.api.auth.mapper.UserMapper;
 import com.confido.api.auth.models.Profile;
 import com.confido.api.auth.models.User;
@@ -83,7 +87,8 @@ public class AuthService implements IAuthService {
             .findByEmail(loginUserDTO.getEmail())
             .orElseThrow(
                 () ->
-                    new RuntimeException("User not found with email: " + loginUserDTO.getEmail()));
+                    new UsernameNotFoundException(
+                        "User not found with email: " + loginUserDTO.getEmail()));
     String token = jwtService.generateToken(authenticatedUser);
     LoginResponse loginResponse = new LoginResponse();
     loginResponse.setToken(token);
@@ -103,16 +108,18 @@ public class AuthService implements IAuthService {
     User user =
         userRepository
             .findByEmail(email)
-            .orElseThrow(() -> new UsernameNotFoundException("No user found with email: " + email));
+            .orElseThrow(
+                () ->
+                    new ForgotPasswordUserNotFoundException("No user found with email: " + email));
 
     if (!user.isEnabled()) {
-      throw new UsernameNotFoundException("User is disabled: " + email);
+      throw new AccountStatusException("User is disabled: " + email);
     }
 
     Profile profile =
         profileRepository
             .findById(user.getId())
-            .orElseThrow(() -> new RuntimeException("No profile found"));
+            .orElseThrow(() -> new ForgotPasswordUserNotFoundException("No profile found"));
 
     String token = UUID.randomUUID().toString();
     user.setResetPasswordToken(token);
@@ -125,7 +132,7 @@ public class AuthService implements IAuthService {
         user.getEmail(),
         emailSender.buildResetPasswordEmail(profile.getLastName(), link),
         "Here is the link to reset your password.");
-    return "email envoyé";
+    return "If an account exists for this email, you will receive a reset link";
   }
 
   @Override
@@ -135,10 +142,14 @@ public class AuthService implements IAuthService {
     User user =
         userRepository
             .findByResetPasswordToken(token)
-            .orElseThrow(() -> new RuntimeException("Invalid reset token"));
+            .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token"));
 
     if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
-      throw new RuntimeException("Reset token has expired");
+      throw new ExpiredResetTokenException("Reset token has expired");
+    }
+    // ✅ Check if the account is disabled
+    if (!user.isEnabled()) {
+      throw new AccountStatusException("The account is disabled");
     }
 
     // Encode password

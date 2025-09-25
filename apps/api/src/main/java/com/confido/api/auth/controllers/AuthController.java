@@ -25,7 +25,7 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.CREATED)
         .body(
             new ApiResponse<>(
-                true, HttpStatus.CREATED.value(), "User signed up successfully", registerUser));
+                HttpStatus.CREATED.value(), "User signed up successfully", registerUser));
   }
 
   @PostMapping("/login")
@@ -34,16 +34,14 @@ public class AuthController {
     LoginResponse loginResponse = authService.login(loginUserDTO);
     return ResponseEntity.status(HttpStatus.OK)
         .body(
-            new ApiResponse<>(
-                true, HttpStatus.OK.value(), "User signed in successfully", loginResponse));
+            new ApiResponse<>(HttpStatus.OK.value(), "User signed in successfully", loginResponse));
   }
 
   @GetMapping("/me")
   public ResponseEntity<ApiResponse<UserDTO>> getCurrentUser() {
     return ResponseEntity.status(HttpStatus.OK)
         .body(
-            new ApiResponse<>(
-                true, HttpStatus.OK.value(), "Current-User", authService.getCurrentUser()));
+            new ApiResponse<>(HttpStatus.OK.value(), "Current-User", authService.getCurrentUser()));
   }
 
   @PostMapping("/forgot-password")
@@ -52,10 +50,7 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK)
         .body(
             new ApiResponse<>(
-                true,
-                HttpStatus.OK.value(),
-                authService.forgotPassword(forgotPasswordRequest),
-                null));
+                HttpStatus.OK.value(), authService.forgotPassword(forgotPasswordRequest), null));
   }
 
   @PutMapping("/reset-password")
@@ -64,9 +59,6 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK)
         .body(
             new ApiResponse<>(
-                true,
-                HttpStatus.OK.value(),
-                authService.resetPassword(resetPasswordRequest),
-                null));
+                HttpStatus.OK.value(), authService.resetPassword(resetPasswordRequest), null));
   }
 }

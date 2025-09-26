@@ -73,4 +73,11 @@ public class AuthController {
             new ApiResponse<>(
                 HttpStatus.OK.value(), authService.resetPassword(resetPasswordRequest), null));
   }
+
+  @PostMapping("/logout")
+  public ResponseEntity<ApiResponse<String>> logout(@RequestBody Map<String, String> request) {
+    String refreshToken = request.get("refreshToken");
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(new ApiResponse<>(HttpStatus.OK.value(), authService.logout(refreshToken), null));
+  }
 }

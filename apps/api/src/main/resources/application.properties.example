@@ -12,8 +12,8 @@ spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
 
 
 security.jwt.secret-key=your-secret-key
-security.access-jwt.expiration-time=3600000 #1h
-security.refresh-jwt.expiration-time=604800000 #7j
+security.access-jwt.expiration-time=3600 #1h
+security.refresh-jwt.expiration-time=604800 #7j
 security.jwt.reset.expiration-time=15 #15min
 link-to-reset-password=http://localhost:8080/
 

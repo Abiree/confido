@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import com.confido.api.auth.dtos.InvalidRefreshTokenException;
 
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.servlet.http.HttpServletRequest;
 
 @RestControllerAdvice
@@ -48,12 +49,16 @@ public class AuthGlobalExceptionHandler {
   }
 
   /** Handle invalid JWT signatures (tampered tokens). Maps to HTTP 401 Unauthorized. */
-  @ExceptionHandler(SignatureException.class)
-  public ProblemDetail handleInvalidJwtSignature(
-      SignatureException ex, HttpServletRequest request) {
+  @ExceptionHandler({SignatureException.class, JwtException.class})
+  public ProblemDetail handleJwtExceptions(Exception ex, HttpServletRequest request) {
+    // Find the root cause
+    Throwable root = ex;
+    while (root.getCause() != null && !(root instanceof SignatureException)) {
+      root = root.getCause();
+    }
     ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.UNAUTHORIZED);
     problem.setTitle("Invalid JWT Signature");
-    problem.setDetail(ex.getMessage());
+    problem.setDetail(root.getMessage());
     return enrich(problem, request, "The JWT signature is invalid");
   }
 
@@ -111,7 +116,7 @@ public class AuthGlobalExceptionHandler {
   /** Handle cases where the password reset token is invalid. Maps to HTTP 400 Bad Request. */
   @ExceptionHandler(InvalidRefreshTokenException.class)
   public ProblemDetail handleInvalidRefreshToken(
-      InvalidResetTokenException ex, HttpServletRequest request) {
+      InvalidRefreshTokenException ex, HttpServletRequest request) {
     ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
     return enrich(problem, request, "Invalid refresh token");
   }

@@ -173,6 +173,23 @@ public class AuthService implements IAuthService {
     return "Password has been reset successfully";
   }
 
+  @Override
+  public String logout(String refreshToken) {
+    String email = jwtService.extractEmail(refreshToken);
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found"));
+
+    if (refreshToken.equals(user.getRefreshToken())) {
+      user.setRefreshToken(null);
+      user.setRefreshTokenExpiry(null);
+      userRepository.save(user);
+    }
+
+    return "Logout successful";
+  }
+
   private LoginResponse updateUserRefreshTokenAndbuildLoginResponse(User user) {
     String accessToken = jwtService.generateAccessToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);

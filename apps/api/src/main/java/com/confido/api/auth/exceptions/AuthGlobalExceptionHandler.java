@@ -12,6 +12,8 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import com.confido.api.auth.dtos.InvalidRefreshTokenException;
+
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -104,6 +106,14 @@ public class AuthGlobalExceptionHandler {
       InvalidResetTokenException ex, HttpServletRequest request) {
     ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
     return enrich(problem, request, "Invalid reset token");
+  }
+
+  /** Handle cases where the password reset token is invalid. Maps to HTTP 400 Bad Request. */
+  @ExceptionHandler(InvalidRefreshTokenException.class)
+  public ProblemDetail handleInvalidRefreshToken(
+      InvalidResetTokenException ex, HttpServletRequest request) {
+    ProblemDetail problem = ProblemDetail.forStatus(HttpStatus.BAD_REQUEST);
+    return enrich(problem, request, "Invalid refresh token");
   }
 
   /** Handle cases where the password reset token has expired. Maps to HTTP 400 Bad Request. */

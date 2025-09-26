@@ -39,6 +39,12 @@ public class User implements UserDetails {
   @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
   private LocalDateTime resetPasswordTokenExpiry;
 
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private String refreshToken;
+
+  @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+  private LocalDateTime refreshTokenExpiry;
+
   @Override
   public Collection<? extends GrantedAuthority> getAuthorities() {
     return List.of();

@@ -1,5 +1,7 @@
 package com.confido.api.auth.controllers;
 
+import java.util.Map;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -35,6 +37,16 @@ public class AuthController {
     return ResponseEntity.status(HttpStatus.OK)
         .body(
             new ApiResponse<>(HttpStatus.OK.value(), "User signed in successfully", loginResponse));
+  }
+
+  @PostMapping("/refresh")
+  public ResponseEntity<ApiResponse<LoginResponse>> refreshToken(
+      @RequestBody Map<String, String> request) {
+    LoginResponse loginResponse = authService.refreshLogin(request.get("refreshToken"));
+    return ResponseEntity.status(HttpStatus.OK)
+        .body(
+            new ApiResponse<>(
+                HttpStatus.OK.value(), "Refresh Token generated successfully", loginResponse));
   }
 
   @GetMapping("/me")

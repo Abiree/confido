@@ -1,6 +1,7 @@
 package com.confido.api.auth.services.impl;
 
 import java.security.Key;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,8 +23,11 @@ public class JwtService {
   @Value("${security.jwt.secret-key}")
   private String secretKey;
 
-  @Value("${security.jwt.expiration-time}")
-  private long jwtExpirationTime;
+  @Value("${security.access-jwt.expiration-time}")
+  private long accessJwtExpirationTime;
+
+  @Value("${security.refresh-jwt.expiration-time}")
+  private long refreshJwtExpirationTime;
 
   private String buildToken(
       Map<String, Object> claims, UserDetails userDetails, long expirationTime) {
@@ -53,8 +57,21 @@ public class JwtService {
     return getClaimsFromToken(token, Claims::getSubject);
   }
 
-  public Long getExpirationTime() {
-    return jwtExpirationTime;
+  public LocalDateTime getAccessJwtExpirationTime() {
+    return LocalDateTime.now().plusSeconds(accessJwtExpirationTime);
+  }
+
+  public LocalDateTime getRefreshJwtExpirationTime() {
+    return LocalDateTime.now().plusSeconds(refreshJwtExpirationTime);
+  }
+
+  public Boolean isTokenExpired(LocalDateTime tokenExpirationTime) {
+    return tokenExpirationTime.isBefore(LocalDateTime.now());
+  }
+
+  public Boolean isRefreshTokenValid(
+      String storedToken, String tokenFromRequest, LocalDateTime expirationTime) {
+    return tokenFromRequest.equals(storedToken) && !isTokenExpired(expirationTime);
   }
 
   private Boolean isTokenExpired(String token) {
@@ -66,11 +83,19 @@ public class JwtService {
     return email.equals(extractEmail(token)) && !isTokenExpired(token);
   }
 
-  public String generateToken(UserDetails userDetails) {
-    return buildToken(new HashMap<>(), userDetails, jwtExpirationTime);
+  public String generateAccessToken(UserDetails userDetails) {
+    return buildToken(new HashMap<>(), userDetails, accessJwtExpirationTime);
   }
 
-  public String generateToken(Map<String, Object> extraClaims, UserDetails userDetails) {
-    return buildToken(extraClaims, userDetails, jwtExpirationTime);
+  public String generateAccessToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    return buildToken(extraClaims, userDetails, accessJwtExpirationTime);
+  }
+
+  public String generateRefreshToken(UserDetails userDetails) {
+    return buildToken(new HashMap<>(), userDetails, refreshJwtExpirationTime);
+  }
+
+  public String generateRefreshToken(Map<String, Object> extraClaims, UserDetails userDetails) {
+    return buildToken(extraClaims, userDetails, refreshJwtExpirationTime);
   }
 }

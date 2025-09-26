@@ -7,6 +7,8 @@ public interface IAuthService {
 
   LoginResponse login(LoginRequest loginUser);
 
+  LoginResponse refreshLogin(String refreshToken);
+
   UserDTO getCurrentUser();
 
   String forgotPassword(ForgotPasswordRequest forgotPasswordRequest);

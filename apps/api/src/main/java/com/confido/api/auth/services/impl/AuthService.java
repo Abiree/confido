@@ -89,11 +89,23 @@ public class AuthService implements IAuthService {
                 () ->
                     new UsernameNotFoundException(
                         "User not found with email: " + loginUserDTO.getEmail()));
-    String token = jwtService.generateToken(authenticatedUser);
-    LoginResponse loginResponse = new LoginResponse();
-    loginResponse.setToken(token);
-    loginResponse.setExpiresIn(jwtService.getExpirationTime());
-    return loginResponse;
+
+    return updateUserRefreshTokenAndbuildLoginResponse(authenticatedUser);
+  }
+
+  @Override
+  public LoginResponse refreshLogin(String refreshToken) {
+    String email = jwtService.extractEmail(refreshToken);
+    User user =
+        userRepository
+            .findByEmail(email)
+            .orElseThrow(() -> new InvalidRefreshTokenException("User not found"));
+
+    if (!jwtService.isRefreshTokenValid(
+        user.getRefreshToken(), refreshToken, user.getRefreshTokenExpiry())) {
+      throw new InvalidRefreshTokenException("Invalid refresh token");
+    }
+    return updateUserRefreshTokenAndbuildLoginResponse(user);
   }
 
   @Override
@@ -144,7 +156,7 @@ public class AuthService implements IAuthService {
             .findByResetPasswordToken(token)
             .orElseThrow(() -> new InvalidResetTokenException("Invalid reset token"));
 
-    if (user.getResetPasswordTokenExpiry().isBefore(LocalDateTime.now())) {
+    if (jwtService.isTokenExpired(user.getResetPasswordTokenExpiry())) {
       throw new ExpiredResetTokenException("Reset token has expired");
     }
     // ✅ Check if the account is disabled
@@ -159,5 +171,26 @@ public class AuthService implements IAuthService {
     userRepository.save(user);
 
     return "Password has been reset successfully";
+  }
+
+  private LoginResponse updateUserRefreshTokenAndbuildLoginResponse(User user) {
+    String accessToken = jwtService.generateAccessToken(user);
+    String refreshToken = jwtService.generateRefreshToken(user);
+    updateUserRefreshToken(user, refreshToken);
+    return buildLoginResponse(accessToken, refreshToken);
+  }
+
+  private void updateUserRefreshToken(User user, String refreshToken) {
+    user.setRefreshToken(refreshToken);
+    user.setRefreshTokenExpiry(jwtService.getRefreshJwtExpirationTime());
+    userRepository.save(user);
+  }
+
+  private LoginResponse buildLoginResponse(String accessToken, String refreshToken) {
+    return new LoginResponse(
+        accessToken,
+        refreshToken,
+        jwtService.getAccessJwtExpirationTime(),
+        jwtService.getRefreshJwtExpirationTime());
   }
 }

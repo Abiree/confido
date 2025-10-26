@@ -159,7 +159,7 @@ public class AuthService implements IAuthService {
     if (jwtService.isTokenExpired(user.getResetPasswordTokenExpiry())) {
       throw new ExpiredResetTokenException("Reset token has expired");
     }
-    // ✅ Check if the account is disabled
+    // Check if the account is disabled
     if (!user.isEnabled()) {
       throw new AccountStatusException("The account is disabled");
     }
@@ -190,7 +190,7 @@ public class AuthService implements IAuthService {
     return "Logout successful";
   }
 
-  private LoginResponse updateUserRefreshTokenAndbuildLoginResponse(User user) {
+  public LoginResponse updateUserRefreshTokenAndbuildLoginResponse(User user) {
     String accessToken = jwtService.generateAccessToken(user);
     String refreshToken = jwtService.generateRefreshToken(user);
     updateUserRefreshToken(user, refreshToken);

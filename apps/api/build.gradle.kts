@@ -1,5 +1,6 @@
 plugins {
 	java
+  jacoco
 	id("org.springframework.boot") version "3.5.5"
 	id("io.spring.dependency-management") version "1.1.7"
 	id("com.diffplug.spotless") version "6.25.0"
@@ -13,6 +14,10 @@ java {
 	toolchain {
 		languageVersion = JavaLanguageVersion.of(17)
 	}
+}
+
+jacoco {
+  toolVersion = "0.8.11"
 }
 
 springBoot {
@@ -42,15 +47,41 @@ dependencies {
   compileOnly("org.projectlombok:lombok")
 	developmentOnly("org.springframework.boot:spring-boot-devtools")
 	runtimeOnly("org.postgresql:postgresql")
-	annotationProcessor("org.projectlombok:lombok")
+  runtimeOnly("com.h2database:h2")
+  annotationProcessor("org.projectlombok:lombok")
   implementation("org.mapstruct:mapstruct:1.6.3")        // core library
   annotationProcessor("org.mapstruct:mapstruct-processor:1.6.3") // generates implementations
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
-	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+  testImplementation("org.springframework.security:spring-security-test")
+  testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 
 tasks.withType<Test> {
 	useJUnitPlatform()
+  finalizedBy(tasks.jacocoTestReport) // run report after tests
+}
+
+tasks.jacocoTestReport {
+  dependsOn(tasks.test)
+  reports {
+    xml.required.set(true)
+    csv.required.set(false)
+    html.required.set(true)
+  }
+  classDirectories.setFrom(
+    files(classDirectories.files.map {
+      fileTree(it) {
+        exclude(
+          "**/ApiApplication.class",  // Spring Boot main class
+          "**/config/**",          // Configurations
+          "**/dtos/**",             // DTOs
+          "**/models/**",           // Entities
+          "**/exceptions/**",       // Exceptions
+          "**/*mapper.*",          // Mappers (MapStruct, etc.)
+        )
+      }
+    })
+  )
 }
 
 spotless {
@@ -58,7 +89,7 @@ spotless {
         // Use Google Java Style
         googleJavaFormat()
 
-        // 🚀 Automatically remove unused imports
+        // Automatically remove unused imports
         removeUnusedImports()
 
         // Optional: apply custom import ordering

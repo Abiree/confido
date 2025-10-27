@@ -186,7 +186,6 @@ public class AuthService implements IAuthService {
       user.setRefreshTokenExpiry(null);
       userRepository.save(user);
     }
-
     return "Logout successful";
   }
 
@@ -197,13 +196,13 @@ public class AuthService implements IAuthService {
     return buildLoginResponse(accessToken, refreshToken);
   }
 
-  private void updateUserRefreshToken(User user, String refreshToken) {
+  public void updateUserRefreshToken(User user, String refreshToken) {
     user.setRefreshToken(refreshToken);
     user.setRefreshTokenExpiry(jwtService.getRefreshJwtExpirationTime());
     userRepository.save(user);
   }
 
-  private LoginResponse buildLoginResponse(String accessToken, String refreshToken) {
+  public LoginResponse buildLoginResponse(String accessToken, String refreshToken) {
     return new LoginResponse(
         accessToken,
         refreshToken,

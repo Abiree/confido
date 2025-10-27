@@ -221,18 +221,13 @@ public class AuthServiceTest {
 
   @Test
   void authService_getCurrentUser_ShouldReturnCurrentUser() {
-    // Mock Authentication
+
     when(authentication.getPrincipal()).thenReturn(user);
     when(securityContext.getAuthentication()).thenReturn(authentication);
-    // Set mocked context
     SecurityContextHolder.setContext(securityContext);
-    // Mock mapper
     when(userMapper.toDTO(user)).thenReturn(registerUserDTO);
-    // Act
     UserDTO result = authService.getCurrentUser();
-    // Assert
     assertEquals("user@gmail.com", result.getEmail());
-    // Clean up
     SecurityContextHolder.clearContext();
   }
 
@@ -317,5 +312,103 @@ public class AuthServiceTest {
     when(jwtService.isTokenExpired(user.getResetPasswordTokenExpiry())).thenReturn(false);
     assertEquals(
         authService.resetPassword(resetPasswordRequest), "Password has been reset successfully");
+  }
+
+  @Test
+  void authService_logout_ShouldThrow_WhenEmailInvalid() {
+    UsernameNotFoundException ex =
+        assertThrows(UsernameNotFoundException.class, () -> authService.logout("refreshToken"));
+    assertEquals("User not found", ex.getMessage());
+  }
+
+  @Test
+  void authService_logout_WhenRefreshTokenMatches_ShouldClearTokenAndSaveUser() {
+    String refreshToken = "validRefreshToken";
+    when(jwtService.extractEmail(refreshToken)).thenReturn(user.getEmail());
+    when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    assertEquals(authService.logout(refreshToken), "Logout successful");
+    assertNull(user.getRefreshToken());
+    assertNull(user.getRefreshTokenExpiry());
+
+    verify(userRepository).save(user);
+  }
+
+  @Test
+  void authService_logout_WhenRefreshTokenDoesNotMatch_ShouldNotSaveUser() {
+    String refreshToken = "otherToken";
+    when(jwtService.extractEmail(refreshToken)).thenReturn(user.getEmail());
+    when(userRepository.findByEmail(user.getEmail())).thenReturn(Optional.of(user));
+    assertEquals(authService.logout(refreshToken), "Logout successful");
+    assertNotNull(user.getRefreshToken());
+    assertNotNull(user.getRefreshTokenExpiry());
+    verify(userRepository, never()).save(any());
+  }
+
+  @Test
+  void authService_UpdateUserRefreshTokenAndbuildLoginResponse() {
+
+    String mockAccessToken = "mockAccessToken123";
+    String mockRefreshToken = "mockRefreshToken456";
+    LoginResponse expectedResponse =
+        new LoginResponse(
+            mockAccessToken,
+            mockRefreshToken,
+            LocalDateTime.now().plusDays(1),
+            LocalDateTime.now().plusMonths(1));
+
+    when(jwtService.generateAccessToken(user)).thenReturn(mockAccessToken);
+    when(jwtService.generateRefreshToken(user)).thenReturn(mockRefreshToken);
+
+    doReturn(expectedResponse)
+        .when(authService)
+        .buildLoginResponse(mockAccessToken, mockRefreshToken);
+
+    LoginResponse result = authService.updateUserRefreshTokenAndbuildLoginResponse(user);
+
+    assertNotNull(result);
+    assertEquals(expectedResponse, result);
+
+    verify(jwtService).generateAccessToken(user);
+    verify(jwtService).generateRefreshToken(user);
+    verify(authService).updateUserRefreshToken(user, mockRefreshToken);
+    verify(authService).buildLoginResponse(mockAccessToken, mockRefreshToken);
+  }
+
+  @Test
+  void authService_updateUserRefreshToken_ShouldSaveInRepository() {
+    String refreshToken = "newRefreshToken";
+    LocalDateTime expectedExpiry = LocalDateTime.now().plusMonths(1);
+
+    when(jwtService.getRefreshJwtExpirationTime()).thenReturn(expectedExpiry);
+
+    authService.updateUserRefreshToken(user, refreshToken);
+
+    assertEquals(user.getRefreshToken(), refreshToken);
+    assertEquals(expectedExpiry, user.getRefreshTokenExpiry());
+
+    verify(jwtService).getRefreshJwtExpirationTime();
+    verify(userRepository).save(user);
+  }
+
+  @Test
+  void authService_buildLoginResponse_ShouldReturnLoginResponse() {
+    String accessToken = "mockAccess";
+    String refreshToken = "mockRefresh";
+    LocalDateTime accessExpiry = LocalDateTime.now().plusDays(1);
+    LocalDateTime refreshExpiry = LocalDateTime.now().plusMonths(1);
+
+    when(jwtService.getAccessJwtExpirationTime()).thenReturn(accessExpiry);
+    when(jwtService.getRefreshJwtExpirationTime()).thenReturn(refreshExpiry);
+
+    LoginResponse response = authService.buildLoginResponse(accessToken, refreshToken);
+
+    assertNotNull(response);
+    assertEquals(accessToken, response.getAccessToken());
+    assertEquals(refreshToken, response.getRefreshToken());
+    assertEquals(accessExpiry, response.getAccessTokenExpiresIn());
+    assertEquals(refreshExpiry, response.getRefreshTokenExpiresIn());
+
+    verify(jwtService).getAccessJwtExpirationTime();
+    verify(jwtService).getRefreshJwtExpirationTime();
   }
 }
